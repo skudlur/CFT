@@ -9,7 +9,7 @@ fn fault_equivalence_op<T>() {
 }
 
 /*
-fn split_btreemap<K, V>(bmap: &BTreeMap<K, V>) {
+fn split_fault_vector(combined_fault_vector: &Vec) {
     /* Returns split BTreeMaps of the faults of a particular net */
     let mut sliced_map = BTreeMap::new();
     let mut bmap_iter = bmap.iter().take(3);
@@ -40,11 +40,20 @@ fn main() {
     //println!("{:?}", split_netlist);
 
     let mut nets = Vec::new(); // Vector of nets
+    let mut gates = Vec::new(); // Vector of gates
 
     for i in 0..netlist_wires.len() {
         let temp_slice = &split_netlist[i][1..4];
+        let gate_slice = &split_netlist[i][0];
         nets.push(temp_slice);
+        gates.push(gate_slice);
     }
+    
+    let mut gates_clone = gates.clone();
+    gates_clone.sort();
+    gates_clone.dedup();
+    println!("Gates present in circuit: {:?}", &gates);
+    println!("Type of gates present in circuit: {:?}", gates_clone);
 
     let mut combined_nets: Vec<_> = nets.concat(); // Vector with all nets
     combined_nets.sort();
@@ -88,13 +97,34 @@ fn main() {
 
     //println!("{:?}", nets_doubled);
 
-    let mut fault_combined_vec: Vec::<(String, String, String)> = nets_doubled.into_iter()
+    let mut gates_doubled = Vec::new(); // Vector to hold repeated values
+    let mut i = 0;              
+
+    while i < gates.len() {
+        gates_doubled.push(gates[i]);
+        gates_doubled.push(gates[i]);
+        gates_doubled.push(gates[i]);
+        gates_doubled.push(gates[i]);
+        i = i + 1;
+    }
+
+    // This is narrowing down it to the assumption that the last(output) gate
+    // is a singular gate.
+    gates_doubled.push(gates[gates.len()-1]);
+    gates_doubled.push(gates[gates.len()-1]);
+    
+    println!("{:?}", gates_doubled);
+
+    let mut fault_combined_vec: Vec::<(String, String, String, String)> = gates_doubled.iter()
+        .zip(nets_doubled.into_iter())
         .zip(fault_vectors.into_iter())
         .zip(fault_values.into_iter())
-        .map(|((x,y), z)| (x.to_string(), y.to_string(), z.to_string()))
+        .map(|(((a,b), c), d)| (a.to_string(), b.to_string(), c.to_string(), d.to_string()))
         .collect(); // Combined vector with net, stuck-at fault and value
     
-    //println!("{:?}", fault_combined_vec);
+    println!("{:?}", fault_combined_vec);
+
+      
 
     let mut fault_map = BTreeMap::new();
 
@@ -102,5 +132,5 @@ fn main() {
         fault_map.insert(i+1, x.to_owned());
     }
 
-    println!("{:?}", fault_map);
+    println!("Fault map: {:?}", fault_map);
 }
