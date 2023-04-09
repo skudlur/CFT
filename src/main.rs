@@ -2,16 +2,22 @@ use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::collections::BTreeMap;
 
-fn fault_equivalence_op<T>(gate: &str, out: &str, in_pref: &str) {
+fn fault_equivalence_op<T>() {
     /* Function of the fault equivalence operation */
-    let mut fault_to_remove: Vec<T> = Vec::new();
+    let mut fault_to_collapse: Vec<T> = Vec::new();
 
-    if gate == "AND" {
-        let s0_out = format!("sa0_{}", out);
-        let s1_out = format!("sa1_{}", out);
-        let s0_in1 = format!("sa0_{}", in_pref);
+}
+
+/*
+fn split_btreemap<K, V>(bmap: &BTreeMap<K, V>) {
+    /* Returns split BTreeMaps of the faults of a particular net */
+    let mut sliced_map = BTreeMap::new();
+    let mut bmap_iter = bmap.iter().take(3);
+    while let Some((k,v)) = bmap_iter.next() {
+        sliced_map.insert(*k, *v);
     }
 }
+*/
 
 fn stuck_at_fault_number(num_nets: &usize) -> usize{
     /* Function to return number of stuck-at faults */
@@ -67,14 +73,34 @@ fn main() {
     println!("Stuck-at faults: {:?}", fault_vectors); 
     
     while value <= (fault_vectors.len()-1) {
-        fault_values.push(1);
+        fault_values.push("1");
         value += 1;
     }
 
-    let mut fault_map = BTreeMap::new(); // BTreeMap with enum stuck-at fault and value
+    //println!("{:?}", fault_values);
 
-    for (i, (&ref fault_vector, &fault_value)) in fault_vectors.iter().zip(fault_values.iter()).enumerate() {
-        fault_map.insert(i+1, (fault_vector, fault_value));
+    let mut nets_doubled = Vec::new(); // Vector to hold repeated values 
+
+    for i in 0..combined_nets.len() {
+        nets_doubled.push(combined_nets[i]);
+        nets_doubled.push(combined_nets[i]);
     }
-    println!("Initial fault values: {:?}", fault_map);
+
+    //println!("{:?}", nets_doubled);
+
+    let mut fault_combined_vec: Vec::<(String, String, String)> = nets_doubled.into_iter()
+        .zip(fault_vectors.into_iter())
+        .zip(fault_values.into_iter())
+        .map(|((x,y), z)| (x.to_string(), y.to_string(), z.to_string()))
+        .collect(); // Combined vector with net, stuck-at fault and value
+    
+    //println!("{:?}", fault_combined_vec);
+
+    let mut fault_map = BTreeMap::new();
+
+    for (i, x) in fault_combined_vec.iter().enumerate() {
+        fault_map.insert(i+1, x.to_owned());
+    }
+
+    println!("{:?}", fault_map);
 }
