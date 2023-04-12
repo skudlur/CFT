@@ -2,9 +2,9 @@ use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::collections::BTreeMap;
 
-fn fault_equivalence_op<T>() {
+fn fault_equivalence_op<T>(f_comb_vec: &Vec<T>) {
     /* Function of the fault equivalence operation */
-    let mut fault_to_collapse: Vec<T> = Vec::new();
+    
 
 }
 
@@ -41,12 +41,15 @@ fn main() {
 
     let mut nets = Vec::new(); // Vector of nets
     let mut gates = Vec::new(); // Vector of gates
+    let mut gates_rep = Vec::new(); // Vector of repeated gates
 
     for i in 0..netlist_wires.len() {
-        let temp_slice = &split_netlist[i][1..4];
+        let temp_slice = &split_netlist[i][2..5];
         let gate_slice = &split_netlist[i][0];
+        let gate_rep_slice = &split_netlist[i][1];
         nets.push(temp_slice);
         gates.push(gate_slice);
+        gates_rep.push(gate_rep_slice);
     }
     
     let mut gates_clone = gates.clone();
@@ -62,8 +65,7 @@ fn main() {
     println!("Nets: {:?}", combined_nets);
     
     let temp_num: usize = combined_nets.len();
-    let mut num_fault: usize = 0;
-    num_fault = stuck_at_fault_number(&temp_num);
+    let num_fault = stuck_at_fault_number(&temp_num);
     println!("Number of total stuck-at faults: {}", num_fault);
 
     let mut fault_vectors = Vec::new(); // Vector with stuck-at faults
@@ -98,6 +100,7 @@ fn main() {
     //println!("{:?}", nets_doubled);
 
     let mut gates_doubled = Vec::new(); // Vector to hold repeated values
+    let mut gates_rep_doubled = Vec::new(); // Vector to hold repeated values 
     let mut i = 0;              
 
     while i < gates.len() {
@@ -105,6 +108,10 @@ fn main() {
         gates_doubled.push(gates[i]);
         gates_doubled.push(gates[i]);
         gates_doubled.push(gates[i]);
+        gates_rep_doubled.push(gates_rep[i]);
+        gates_rep_doubled.push(gates_rep[i]);
+        gates_rep_doubled.push(gates_rep[i]);
+        gates_rep_doubled.push(gates_rep[i]);
         i = i + 1;
     }
 
@@ -112,19 +119,22 @@ fn main() {
     // is a singular gate.
     gates_doubled.push(gates[gates.len()-1]);
     gates_doubled.push(gates[gates.len()-1]);
-    
-    println!("{:?}", gates_doubled);
 
-    let mut fault_combined_vec: Vec::<(String, String, String, String)> = gates_doubled.iter()
+    gates_rep_doubled.push(gates_rep[gates.len()-1]);
+    gates_rep_doubled.push(gates_rep[gates.len()-1]);
+
+    println!("{:?}", gates_doubled);
+    println!("{:?}", gates_rep_doubled);
+
+    let fault_combined_vec: Vec::<(String, String, String, String, String)> = gates_rep_doubled.iter()
+        .zip(gates_doubled.into_iter())
         .zip(nets_doubled.into_iter())
         .zip(fault_vectors.into_iter())
         .zip(fault_values.into_iter())
-        .map(|(((a,b), c), d)| (a.to_string(), b.to_string(), c.to_string(), d.to_string()))
+        .map(|((((a, b), c), d), e)| (a.to_string(), b.to_string(), c.to_string(), d.to_string(), e.to_string()))
         .collect(); // Combined vector with net, stuck-at fault and value
     
-    println!("{:?}", fault_combined_vec);
-
-      
+    println!("{:?}", fault_combined_vec); 
 
     let mut fault_map = BTreeMap::new();
 
