@@ -1,3 +1,4 @@
+use std::fs;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::collections::BTreeMap;
@@ -6,6 +7,13 @@ fn fault_equivalence_op<T>(f_comb_vec: &Vec<T>) {
     /* Function of the fault equivalence operation */
     
 
+}
+
+fn logo_display() {
+    let filename = "logo.txt";
+    let logo_con = fs::read_to_string(filename)
+        .expect("Failed to read the file");
+    println!("{}",logo_con);
 }
 
 /*
@@ -25,6 +33,7 @@ fn stuck_at_fault_number(num_nets: &usize) -> usize{
 }
 
 fn main() {
+    logo_display();
     let netlist_file = File::open("netlist.txt").unwrap();
     let reader = BufReader::new(netlist_file);
 
