@@ -3,29 +3,35 @@ use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::collections::BTreeMap;
 
+/*
 fn fault_equivalence_op<T>(f_comb_vec: &Vec<T>) {
     /* Function of the fault equivalence operation */
-    
+    for i in 0..f_comb_vec.len() {
+        let mut serial_val = f_comb_vec[i][0];
+        let mut gate_val = f_comb_vec[i][1];
 
+        match gate_val {
+            "AND" => {
+                
+            }
+            "OR" => {
+            
+            }
+            "NOT" => {
+                
+            }
+            "_" => panic!("Invalid gate!"),
+        }
+    }
 }
-
+*/
 fn logo_display() {
+    /* CFT logo */
     let filename = "logo.txt";
     let logo_con = fs::read_to_string(filename)
         .expect("Failed to read the file");
     println!("{}",logo_con);
 }
-
-/*
-fn split_fault_vector(combined_fault_vector: &Vec) {
-    /* Returns split BTreeMaps of the faults of a particular net */
-    let mut sliced_map = BTreeMap::new();
-    let mut bmap_iter = bmap.iter().take(3);
-    while let Some((k,v)) = bmap_iter.next() {
-        sliced_map.insert(*k, *v);
-    }
-}
-*/
 
 fn stuck_at_fault_number(num_nets: &usize) -> usize{
     /* Function to return number of stuck-at faults */
@@ -46,7 +52,13 @@ fn main() {
 
     let split_netlist: Vec<Vec<_>> = netlist_wires.iter().map(|s| s.split(" ").collect()).collect(); // Vector to split the netlist line
 
-    //println!("{:?}", split_netlist);
+    println!("{:?}", split_netlist);
+
+    for i in 0..split_netlist.len() {
+        if split_netlist[i][0] != "NOT" && split_netlist[i].len() < 5 {
+            panic!("Netlist error! Please rectify");
+        }
+    }
 
     let mut nets = Vec::new(); // Vector of nets
     let mut gates = Vec::new(); // Vector of gates
@@ -106,7 +118,7 @@ fn main() {
         nets_doubled.push(combined_nets[i]);
     }
 
-    //println!("{:?}", nets_doubled);
+    println!("{:?}", nets_doubled);
 
     let mut gates_doubled = Vec::new(); // Vector to hold repeated values
     let mut gates_rep_doubled = Vec::new(); // Vector to hold repeated values 
@@ -117,6 +129,10 @@ fn main() {
         gates_doubled.push(gates[i]);
         gates_doubled.push(gates[i]);
         gates_doubled.push(gates[i]);
+        gates_doubled.push(gates[i]);
+        gates_doubled.push(gates[i]);
+        gates_rep_doubled.push(gates_rep[i]);
+        gates_rep_doubled.push(gates_rep[i]);
         gates_rep_doubled.push(gates_rep[i]);
         gates_rep_doubled.push(gates_rep[i]);
         gates_rep_doubled.push(gates_rep[i]);
@@ -126,11 +142,15 @@ fn main() {
 
     // This is narrowing down it to the assumption that the last(output) gate
     // is a singular gate.
-    gates_doubled.push(gates[gates.len()-1]);
-    gates_doubled.push(gates[gates.len()-1]);
+    gates_doubled.pop();
+    gates_doubled.pop();
+    gates_doubled.pop();
+    gates_doubled.pop();
 
-    gates_rep_doubled.push(gates_rep[gates.len()-1]);
-    gates_rep_doubled.push(gates_rep[gates.len()-1]);
+    gates_rep_doubled.pop();
+    gates_rep_doubled.pop();
+    gates_rep_doubled.pop();
+    gates_rep_doubled.pop();
 
     println!("{:?}", gates_doubled);
     println!("{:?}", gates_rep_doubled);
