@@ -1,7 +1,6 @@
 use std::fs;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
-use std::collections::BTreeMap;
 
 /*
 fn fault_equivalence_op<T>(f_comb_vec: &Vec<T>) {
@@ -9,10 +8,11 @@ fn fault_equivalence_op<T>(f_comb_vec: &Vec<T>) {
     for i in 0..f_comb_vec.len() {
         let mut serial_val = f_comb_vec[i][0];
         let mut gate_val = f_comb_vec[i][1];
+        let mut string_index_val = String::new();
 
         match gate_val {
             "AND" => {
-                
+                f_comb_vec[i][  
             }
             "OR" => {
             
@@ -38,8 +38,24 @@ fn stuck_at_fault_number(num_nets: &usize) -> usize{
     num_nets * 2
 }
 
+#[derive(Default, Debug)]
+struct Wire {
+    serial_no: usize,
+    sa0: u32,
+    sa1: u32,
+    input_source: Vec<String>,
+    output_source: Vec<String>,
+}
+
+#[derive(Default, Debug)]
+struct Gate {
+    serial_no: usize,
+    val: String,
+    inputs: Vec<String>,
+    outputs: Vec<String>,
+}
+
 fn main() {
-    logo_display();
     let netlist_file = File::open("netlist.txt").unwrap();
     let reader = BufReader::new(netlist_file);
 
@@ -48,128 +64,52 @@ fn main() {
     for line in reader.lines() {
         netlist_wires.push(line.unwrap());
     }
-    //println!("{:?}", netlist_wires);
+    println!("{:?}", netlist_wires);
 
     let split_netlist: Vec<Vec<_>> = netlist_wires.iter().map(|s| s.split(" ").collect()).collect(); // Vector to split the netlist line
 
     println!("{:?}", split_netlist);
 
     for i in 0..split_netlist.len() {
-        if split_netlist[i][0] != "NOT" && split_netlist[i].len() < 5 {
+        if split_netlist[i][0] != "NOT" && split_netlist[i].len() < 4 {
             panic!("Netlist error! Please rectify");
         }
     }
 
-    let mut nets = Vec::new(); // Vector of nets
+    let mut wires = Vec::new(); // Vector of wires
     let mut gates = Vec::new(); // Vector of gates
-    let mut gates_rep = Vec::new(); // Vector of repeated gates
 
     for i in 0..netlist_wires.len() {
-        let temp_slice = &split_netlist[i][2..5];
-        let gate_slice = &split_netlist[i][0];
-        let gate_rep_slice = &split_netlist[i][1];
-        nets.push(temp_slice);
-        gates.push(gate_slice);
-        gates_rep.push(gate_rep_slice);
-    }
-    
-    let mut gates_clone = gates.clone();
-    gates_clone.sort();
-    gates_clone.dedup();
-    println!("Gates present in circuit: {:?}", &gates);
-    println!("Type of gates present in circuit: {:?}", gates_clone);
+        let temp_gate = &split_netlist[i][0];
+        let temp_gate = temp_gate.to_string();
+        let temp_input_1 = &split_netlist[i][1];
+        let temp_input_2 = &split_netlist[i][2];
+        let temp_output = &split_netlist[i][3];
+        
+        let mut temp_input_wire = Vec::new();
+        temp_input_wire.push(temp_input_1.to_string());
+        temp_input_wire.push(temp_input_2.to_string());
+        let mut temp_output_wire = Vec::new(); 
+        temp_output_wire.push(temp_output.to_string());
+        
+        let temp_wire = Wire {
+            serial_no: i+1,
+            sa0: 1,
+            sa1: 1,
+            input_source: temp_input_wire.clone(),
+            output_source: temp_output_wire.clone(),
+        };
+        wires.push(temp_wire);
 
-    let mut combined_nets: Vec<_> = nets.concat(); // Vector with all nets
-    combined_nets.sort();
-    combined_nets.dedup();
-
-    println!("Nets: {:?}", combined_nets);
-    
-    let temp_num: usize = combined_nets.len();
-    let num_fault = stuck_at_fault_number(&temp_num);
-    println!("Number of total stuck-at faults: {}", num_fault);
-
-    let mut fault_vectors = Vec::new(); // Vector with stuck-at faults
-    let mut fault_values = Vec::new(); // Vector with stuck-at values for the fault 
-                                       // (1 -> Present, 0 -> Collapsed/Absent)
-    let mut value = 0;
-
-    for i in 1..combined_nets.len()+1 {
-        let sa0 = format!("sao_{}",i);
-        let sa1 = format!("sa1_{}",i);
-
-        fault_vectors.push(sa0);
-        fault_vectors.push(sa1);
+        let temp_gate = Gate {
+            serial_no: i+1,
+            val: temp_gate,
+            inputs: temp_input_wire,
+            outputs: temp_output_wire,
+        };
+        gates.push(temp_gate);
     }
 
-    println!("Stuck-at faults: {:?}", fault_vectors); 
-    
-    while value <= (fault_vectors.len()-1) {
-        fault_values.push("1");
-        value += 1;
-    }
-
-    //println!("{:?}", fault_values);
-
-    let mut nets_doubled = Vec::new(); // Vector to hold repeated values 
-
-    for i in 0..combined_nets.len() {
-        nets_doubled.push(combined_nets[i]);
-        nets_doubled.push(combined_nets[i]);
-    }
-
-    println!("{:?}", nets_doubled);
-
-    let mut gates_doubled = Vec::new(); // Vector to hold repeated values
-    let mut gates_rep_doubled = Vec::new(); // Vector to hold repeated values 
-    let mut i = 0;              
-
-    while i < gates.len() {
-        gates_doubled.push(gates[i]);
-        gates_doubled.push(gates[i]);
-        gates_doubled.push(gates[i]);
-        gates_doubled.push(gates[i]);
-        gates_doubled.push(gates[i]);
-        gates_doubled.push(gates[i]);
-        gates_rep_doubled.push(gates_rep[i]);
-        gates_rep_doubled.push(gates_rep[i]);
-        gates_rep_doubled.push(gates_rep[i]);
-        gates_rep_doubled.push(gates_rep[i]);
-        gates_rep_doubled.push(gates_rep[i]);
-        gates_rep_doubled.push(gates_rep[i]);
-        i = i + 1;
-    }
-
-    // This is narrowing down it to the assumption that the last(output) gate
-    // is a singular gate.
-    gates_doubled.pop();
-    gates_doubled.pop();
-    gates_doubled.pop();
-    gates_doubled.pop();
-
-    gates_rep_doubled.pop();
-    gates_rep_doubled.pop();
-    gates_rep_doubled.pop();
-    gates_rep_doubled.pop();
-
-    println!("{:?}", gates_doubled);
-    println!("{:?}", gates_rep_doubled);
-
-    let fault_combined_vec: Vec::<(String, String, String, String, String)> = gates_rep_doubled.iter()
-        .zip(gates_doubled.into_iter())
-        .zip(nets_doubled.into_iter())
-        .zip(fault_vectors.into_iter())
-        .zip(fault_values.into_iter())
-        .map(|((((a, b), c), d), e)| (a.to_string(), b.to_string(), c.to_string(), d.to_string(), e.to_string()))
-        .collect(); // Combined vector with net, stuck-at fault and value
-    
-    println!("{:?}", fault_combined_vec); 
-
-    let mut fault_map = BTreeMap::new();
-
-    for (i, x) in fault_combined_vec.iter().enumerate() {
-        fault_map.insert(i+1, x.to_owned());
-    }
-
-    println!("Fault map: {:?}", fault_map);
+    println!("{:?}", wires);
+    println!("{:?}", gates);
 }
