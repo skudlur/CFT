@@ -43,8 +43,8 @@ struct Wire {
     serial_no: usize,
     sa0: u32,
     sa1: u32,
-    input_source: Vec<String>,
-    output_source: Vec<String>,
+    input_source: String,
+    gate_assoc: String,
 }
 
 #[derive(Default, Debug)]
@@ -56,6 +56,7 @@ struct Gate {
 }
 
 fn main() {
+    logo_display();
     let netlist_file = File::open("netlist.txt").unwrap();
     let reader = BufReader::new(netlist_file);
 
@@ -64,17 +65,17 @@ fn main() {
     for line in reader.lines() {
         netlist_wires.push(line.unwrap());
     }
-    println!("{:?}", netlist_wires);
+    //println!("{:?}", netlist_wires);
 
     let split_netlist: Vec<Vec<_>> = netlist_wires.iter().map(|s| s.split(" ").collect()).collect(); // Vector to split the netlist line
 
-    println!("{:?}", split_netlist);
+    //println!("{:?}", split_netlist);
 
     for i in 0..split_netlist.len() {
         if split_netlist[i][0] != "NOT" && split_netlist[i].len() < 4 {
             panic!("Netlist error! Please rectify");
         }
-    }
+    } 
 
     let mut wires = Vec::new(); // Vector of wires
     let mut gates = Vec::new(); // Vector of gates
@@ -86,21 +87,25 @@ fn main() {
         let temp_input_2 = &split_netlist[i][2];
         let temp_output = &split_netlist[i][3];
         
+        for j in 1..3 {
+            let temp_input = &split_netlist[i][j];
+            let temp_input = temp_input.to_string();
+            let temp_wire = Wire {
+                serial_no: i+1,
+                sa0: 1,
+                sa1: 1,
+                input_source: temp_input,
+                gate_assoc: temp_gate.clone(),
+            };
+            wires.push(temp_wire);
+        }
+
         let mut temp_input_wire = Vec::new();
         temp_input_wire.push(temp_input_1.to_string());
         temp_input_wire.push(temp_input_2.to_string());
         let mut temp_output_wire = Vec::new(); 
         temp_output_wire.push(temp_output.to_string());
         
-        let temp_wire = Wire {
-            serial_no: i+1,
-            sa0: 1,
-            sa1: 1,
-            input_source: temp_input_wire.clone(),
-            output_source: temp_output_wire.clone(),
-        };
-        wires.push(temp_wire);
-
         let temp_gate = Gate {
             serial_no: i+1,
             val: temp_gate,
