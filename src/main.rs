@@ -2,16 +2,21 @@ use std::fs;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 
-fn fault_equivalence_op(wire_vec: &mut Vec<Wire>, gate_vec: &mut Vec<Gate>) {
+fn fault_equivalence_op(wire_vec: &mut Vec<Wire>, gate_vec: &mut Vec<Gate>, fault_no: &usize) {
     /* Function of the fault equivalence operation */
     println!("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
     println!("Fault Equivalence Operation Starting");
     println!("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+    
+    let mut collapse_fault_no: usize = 0;
+    let mut collapse_ratio: f32 = 0.0;
+
     for i in 0..wire_vec.len() {
         if wire_vec[i].gate_assoc == "AND" {
             for j in 0..gate_vec.len() {
                 if wire_vec[i].gate_assoc == gate_vec[j].val && gate_vec[j].inputs.contains(&wire_vec[i].input_source) {
                     wire_vec[i].sa0 = 0;
+                    collapse_fault_no = collapse_fault_no + 1;
                 }
             }
             println!("Fault for {} collapsed!", wire_vec[i].gate_assoc);
@@ -20,6 +25,7 @@ fn fault_equivalence_op(wire_vec: &mut Vec<Wire>, gate_vec: &mut Vec<Gate>) {
             for j in 0..gate_vec.len() {
                 if wire_vec[i].gate_assoc == gate_vec[j].val && gate_vec[j].inputs.contains(&wire_vec[i].input_source) {
                     wire_vec[i].sa1 = 0;
+                    collapse_fault_no = collapse_fault_no + 1;
                 }
             }
             println!("Fault for {} collapsed!", wire_vec[i].gate_assoc);
@@ -38,6 +44,13 @@ fn fault_equivalence_op(wire_vec: &mut Vec<Wire>, gate_vec: &mut Vec<Gate>) {
         println!("{:?}", gate);
     }
     println!("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+    collapse_fault_no = fault_no - collapse_fault_no;
+    println!("Number of total stuck-at faults after fault equivalence: {}", collapse_fault_no);
+    println!("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+    collapse_ratio = ((collapse_fault_no+1) as f32)/(*fault_no as f32);
+    println!("Collapse Ratio: {}", collapse_ratio);
+    println!("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+
 }
 
 fn logo_display() {
@@ -166,5 +179,5 @@ fn main() {
         println!("{:?}", gate);
     }
 
-    fault_equivalence_op(&mut wires, &mut gates);
+    fault_equivalence_op(&mut wires, &mut gates, &num_fault);
 }
