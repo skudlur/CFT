@@ -9,7 +9,7 @@ fn fault_equivalence_op(wire_vec: &mut Vec<Wire>, gate_vec: &mut Vec<Gate>, faul
     println!("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
     
     let mut collapse_fault_no: usize = 0;
-    let mut collapse_ratio: f32 = 0.0;
+    let collapse_ratio: f32;
 
     for i in 0..wire_vec.len() {
         if wire_vec[i].gate_assoc == "AND" {
@@ -17,6 +17,10 @@ fn fault_equivalence_op(wire_vec: &mut Vec<Wire>, gate_vec: &mut Vec<Gate>, faul
                 if wire_vec[i].gate_assoc == gate_vec[j].val && gate_vec[j].inputs.contains(&wire_vec[i].input_source) {
                     wire_vec[i].sa0 = 0;
                     collapse_fault_no = collapse_fault_no + 1;
+                    // Bunch of debug calls to avoid dead code warning, ik smol brain rust user
+                    wire_vec[i].wire_no = wire_vec[i].wire_no;
+                    gate_vec[j].gate_no = gate_vec[j].gate_no;
+                    gate_vec[j].outputs = gate_vec[j].outputs.clone();
                 }
             }
             println!("Fault for {} collapsed!", wire_vec[i].gate_assoc);
@@ -66,7 +70,7 @@ fn stuck_at_fault_number(num_nets: &usize) -> usize{
     num_nets * 2
 }
 
-#[derive(Default, Debug)]
+#[derive(Debug)]
 struct Wire {
     wire_no: usize,
     sa0: u32,
@@ -75,7 +79,7 @@ struct Wire {
     gate_assoc: String,
 }
 
-#[derive(Default, Debug)]
+#[derive(Debug)]
 struct Gate {
     gate_no: usize,
     val: String,
