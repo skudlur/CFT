@@ -6,4 +6,5 @@ Circuit Fault Tester is a tool used to parse a netlist file and perform fault op
 
 ### Checklist
 1. ~Fault equivalence operation with collapse ratio.~
-2. Fault dominance operation with collapse ratio.
+2. ~Fault dominance operation with collapse ratio.~
+3. D-Algorithm
