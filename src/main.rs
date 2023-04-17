@@ -2,8 +2,8 @@ use std::fs;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 
-fn fault_equivalence_op(wire_vec: &mut Vec<Wire>, gate_vec: &mut Vec<Gate>, fault_no: &usize) {
-    /* Function of the fault equivalence operation */
+fn fault_eq_dom_op(wire_vec: &mut Vec<Wire>, gate_vec: &mut Vec<Gate>, fault_no: &usize) {
+    /* Function of the fault equivalence and fault dominance collapsing operation */
     println!("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
     println!("Fault Equivalence Operation Starting");
     println!("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
@@ -51,8 +51,11 @@ fn fault_equivalence_op(wire_vec: &mut Vec<Wire>, gate_vec: &mut Vec<Gate>, faul
     collapse_fault_no = fault_no - collapse_fault_no;
     println!("Number of total stuck-at faults after fault equivalence: {}", collapse_fault_no);
     println!("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
-    collapse_ratio = ((collapse_fault_no+1) as f32)/(*fault_no as f32);
-    println!("Collapse Ratio: {}", collapse_ratio);
+    collapse_ratio = ((collapse_fault_no) as f32)/(*fault_no as f32);
+    println!("Collapse Ratio after Fault Equivalence: {}", collapse_ratio);
+
+    println!("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+    println!("Fault Dominance Operation Starting");
     println!("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
 
 }
@@ -183,5 +186,5 @@ fn main() {
         println!("{:?}", gate);
     }
 
-    fault_equivalence_op(&mut wires, &mut gates, &num_fault);
+    fault_eq_dom_op(&mut wires, &mut gates, &num_fault);
 }
