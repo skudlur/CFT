@@ -8,15 +8,19 @@ fn fault_eq_dom_op(wire_vec: &mut Vec<Wire>, gate_vec: &mut Vec<Gate>, fault_no:
     println!("Fault Equivalence Operation Starting");
     println!("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
     
-    let mut collapse_fault_no: usize = 0;
-    let collapse_ratio: f32;
+    let mut collapse_fault_no_eq: usize = 0;
+    let mut collapse_ratio_eq: f32;
+
+    let mut collapse_fault_no_do: usize = 0;
+    let mut collapse_ratio_do: f32;
 
     for i in 0..wire_vec.len() {
         if wire_vec[i].gate_assoc == "AND" {
             for j in 0..gate_vec.len() {
                 if wire_vec[i].gate_assoc == gate_vec[j].val && gate_vec[j].inputs.contains(&wire_vec[i].input_source) {
                     wire_vec[i].sa0 = 0;
-                    collapse_fault_no = collapse_fault_no + 1;
+                    collapse_fault_no_eq = collapse_fault_no_eq + 1;
+                    collapse_fault_no_do = collapse_fault_no_do + 1;
                     // Bunch of debug calls to avoid dead code warning, ik smol brain rust user
                     wire_vec[i].wire_no = wire_vec[i].wire_no;
                     gate_vec[j].gate_no = gate_vec[j].gate_no;
@@ -29,7 +33,8 @@ fn fault_eq_dom_op(wire_vec: &mut Vec<Wire>, gate_vec: &mut Vec<Gate>, fault_no:
             for j in 0..gate_vec.len() {
                 if wire_vec[i].gate_assoc == gate_vec[j].val && gate_vec[j].inputs.contains(&wire_vec[i].input_source) {
                     wire_vec[i].sa1 = 0;
-                    collapse_fault_no = collapse_fault_no + 1;
+                    collapse_fault_no_eq = collapse_fault_no_eq + 1;
+                    collapse_fault_no_do = collapse_fault_no_do + 1;
                 }
             }
             println!("Fault for {} collapsed!", wire_vec[i].gate_assoc);
@@ -39,24 +44,64 @@ fn fault_eq_dom_op(wire_vec: &mut Vec<Wire>, gate_vec: &mut Vec<Gate>, fault_no:
     println!("Fault Equivalence Operation Ended");
     println!("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
     println!("Wires After Fault Equivalence:");
-    for wire in wire_vec {
+    for wire in &mut *wire_vec {
         println!("{:?}", wire);
     }
     println!("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
     println!("Gates After Fault Equivalence:");
-    for gate in gate_vec {
+    for gate in &mut *gate_vec {
         println!("{:?}", gate);
     }
     println!("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
-    collapse_fault_no = fault_no - collapse_fault_no;
-    println!("Number of total stuck-at faults after fault equivalence: {}", collapse_fault_no);
+    collapse_fault_no_eq = fault_no - collapse_fault_no_eq;
+    println!("Number of total stuck-at faults after fault equivalence: {}", collapse_fault_no_eq);
     println!("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
-    collapse_ratio = ((collapse_fault_no) as f32)/(*fault_no as f32);
-    println!("Collapse Ratio after Fault Equivalence: {}", collapse_ratio);
+    collapse_ratio_eq = ((collapse_fault_no_eq) as f32)/(*fault_no as f32);
+    println!("Collapse Ratio after Fault Equivalence: {}", collapse_ratio_eq);
 
     println!("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
     println!("Fault Dominance Operation Starting");
     println!("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+
+    for i in 0..wire_vec.len() {
+        if wire_vec[i].gate_assoc == "AND" {
+            for j in (0..gate_vec.len()).rev() {
+                if gate_vec[j].val == wire_vec[i].gate_assoc && wire_vec[i].sa0 == 1 && wire_vec[i].sa1 == 1 && gate_vec[gate_vec.len()-1].outputs.contains(&wire_vec[wire_vec.len()-1].input_source) {
+                    wire_vec[i].sa0 = 0;
+                    collapse_fault_no_do = collapse_fault_no_do + 1;
+                }
+            }
+        }
+        else if wire_vec[i].gate_assoc == "OR" {
+            for j in (0..gate_vec.len()).rev() {
+                if gate_vec[j].val == wire_vec[i].gate_assoc && wire_vec[i].sa0 == 1 && wire_vec[i].sa1 == 1 && gate_vec[gate_vec.len()-1].outputs.contains(&wire_vec[wire_vec.len()-1].input_source) {
+                    wire_vec[i].sa1 = 0;
+                    collapse_fault_no_do = collapse_fault_no_do + 1;
+                }
+            }
+        }
+    }
+    println!("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+    println!("Fault Dominance Operation Ended");
+    println!("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+    println!("Wires After Fault Dominance:");
+    for wire in &mut *wire_vec {
+        println!("{:?}", wire);
+    }
+    println!("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+    println!("Gates After Fault Dominance:");
+    for gate in &mut *gate_vec {
+        println!("{:?}", gate);
+    }
+    let mut number_offset = wire_vec.len();
+    let number_offset = number_offset/3;
+    let number_offset = number_offset-1;
+    println!("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+    collapse_fault_no_do = (fault_no - collapse_fault_no_do) + number_offset;
+    println!("Number of total stuck-at faults after fault dominance: {}", collapse_fault_no_do);
+    println!("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+    collapse_ratio_do = ((collapse_fault_no_do) as f32)/(*fault_no as f32);
+    println!("Collapse Ratio after Fault dominance: {}", collapse_ratio_do);
 
 }
 
