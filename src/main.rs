@@ -2,29 +2,30 @@ use std::fs;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 
-/*
-fn fault_equivalence_op<T>(f_comb_vec: &Vec<T>) {
+fn fault_equivalence_op(wire_vec: &mut Vec<Wire>, gate_vec: &mut Vec<Gate>) {
     /* Function of the fault equivalence operation */
-    for i in 0..f_comb_vec.len() {
-        let mut serial_val = f_comb_vec[i][0];
-        let mut gate_val = f_comb_vec[i][1];
-        let mut string_index_val = String::new();
-
-        match gate_val {
-            "AND" => {
-                f_comb_vec[i][  
+    for i in 0..wire_vec.len() {
+        if wire_vec[i].gate_assoc == "AND" {
+            for j in 0..gate_vec.len() {
+                if wire_vec[i].gate_assoc == gate_vec[j].val && gate_vec[j].inputs.contains(&wire_vec[i].input_source) {
+                    wire_vec[i].sa0 = 0;
+                }
             }
-            "OR" => {
-            
+            println!("Fault for {} collapsed!", wire_vec[i].gate_assoc);
+        }
+        else if wire_vec[i].gate_assoc == "OR" {
+            for j in 0..gate_vec.len() {
+                if wire_vec[i].gate_assoc == gate_vec[j].val && gate_vec[j].inputs.contains(&wire_vec[i].input_source) {
+                    wire_vec[i].sa1 = 0;
+                }
             }
-            "NOT" => {
-                
-            }
-            "_" => panic!("Invalid gate!"),
+            println!("Fault for {} collapsed!", wire_vec[i].gate_assoc);
         }
     }
+    println!("{:?}", wire_vec);
+    println!("{:?}", gate_vec);
 }
-*/
+
 fn logo_display() {
     /* CFT logo */
     let filename = "logo.txt";
@@ -40,7 +41,7 @@ fn stuck_at_fault_number(num_nets: &usize) -> usize{
 
 #[derive(Default, Debug)]
 struct Wire {
-    serial_no: usize,
+    wire_no: usize,
     sa0: u32,
     sa1: u32,
     input_source: String,
@@ -49,7 +50,7 @@ struct Wire {
 
 #[derive(Default, Debug)]
 struct Gate {
-    serial_no: usize,
+    gate_no: usize,
     val: String,
     inputs: Vec<String>,
     outputs: Vec<String>,
@@ -87,11 +88,11 @@ fn main() {
         let temp_input_2 = &split_netlist[i][2];
         let temp_output = &split_netlist[i][3];
         
-        for j in 1..3 {
+        for j in 1..4 {
             let temp_input = &split_netlist[i][j];
             let temp_input = temp_input.to_string();
             let temp_wire = Wire {
-                serial_no: i+1,
+                wire_no: j,
                 sa0: 1,
                 sa1: 1,
                 input_source: temp_input,
@@ -107,7 +108,7 @@ fn main() {
         temp_output_wire.push(temp_output.to_string());
         
         let temp_gate = Gate {
-            serial_no: i+1,
+            gate_no: i+1,
             val: temp_gate,
             inputs: temp_input_wire,
             outputs: temp_output_wire,
@@ -117,4 +118,7 @@ fn main() {
 
     println!("{:?}", wires);
     println!("{:?}", gates);
+
+
+    fault_equivalence_op(&mut wires, &mut gates);
 }
