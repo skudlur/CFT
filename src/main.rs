@@ -4,6 +4,9 @@ use std::io::{BufRead, BufReader};
 
 fn fault_equivalence_op(wire_vec: &mut Vec<Wire>, gate_vec: &mut Vec<Gate>) {
     /* Function of the fault equivalence operation */
+    println!("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+    println!("Fault Equivalence Operation Starting");
+    println!("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
     for i in 0..wire_vec.len() {
         if wire_vec[i].gate_assoc == "AND" {
             for j in 0..gate_vec.len() {
@@ -22,8 +25,19 @@ fn fault_equivalence_op(wire_vec: &mut Vec<Wire>, gate_vec: &mut Vec<Gate>) {
             println!("Fault for {} collapsed!", wire_vec[i].gate_assoc);
         }
     }
-    println!("{:?}", wire_vec);
-    println!("{:?}", gate_vec);
+    println!("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+    println!("Fault Equivalence Operation Ended");
+    println!("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+    println!("Wires After Fault Equivalence:");
+    for wire in wire_vec {
+        println!("{:?}", wire);
+    }
+    println!("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+    println!("Gates After Fault Equivalence:");
+    for gate in gate_vec {
+        println!("{:?}", gate);
+    }
+    println!("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
 }
 
 fn logo_display() {
@@ -78,6 +92,33 @@ fn main() {
         }
     } 
 
+    let mut nets = Vec::new(); // Vector of nets
+    let mut gates_i = Vec::new(); // Vector of gates
+
+    for i in 0..netlist_wires.len() {
+        let temp_slice = &split_netlist[i][1..4];
+        let gate_slice = &split_netlist[i][0];
+        nets.push(temp_slice);
+        gates_i.push(gate_slice);
+    }
+    
+    let mut gates_i_clone = gates_i.clone();
+    gates_i_clone.sort();
+    gates_i_clone.dedup();
+    
+    println!("Gates present in circuit: {:?}", &gates_i);
+    println!("Type of gates present in circuit: {:?}", gates_i_clone);
+    
+    let mut combined_nets: Vec<_> = nets.concat(); // Vector with all nets
+    combined_nets.sort();
+    combined_nets.dedup();
+    
+    println!("Nets: {:?}", combined_nets);
+    
+    let temp_num: usize = combined_nets.len();
+    let num_fault = stuck_at_fault_number(&temp_num);
+    println!("Number of total stuck-at faults: {}", num_fault);
+
     let mut wires = Vec::new(); // Vector of wires
     let mut gates = Vec::new(); // Vector of gates
 
@@ -115,10 +156,15 @@ fn main() {
         };
         gates.push(temp_gate);
     }
-
-    println!("{:?}", wires);
-    println!("{:?}", gates);
-
+    
+    println!("Wire Initial Values");
+    for wire in &wires {
+        println!("{:?}", wire);
+    }
+    println!("Gate Initial Values");
+    for gate in &gates {
+        println!("{:?}", gate);
+    }
 
     fault_equivalence_op(&mut wires, &mut gates);
 }
